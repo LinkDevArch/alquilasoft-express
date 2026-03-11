@@ -1,0 +1,270 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────
+// ENUMS
+// ──────────────────────────────────────────────
+
+enum MovementType {
+  IN
+  OUT
+  TRANSFER
+}
+
+enum ItemStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+  RETIRED
+}
+
+enum ItemTrackingType {
+  SERIALIZED
+  BULK
+}
+
+enum RentalStatus {
+  ACTIVE
+  PARTIAL_RETURN
+  RETURNED
+  CANCELLED
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ──────────────────────────────────────────────
+// 1. Tenants (RF-TNT-01, RNF-04)
+// ──────────────────────────────────────────────
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+
+  users              User[]
+  productCategories  ProductCategory[]
+  storageLocations   StorageLocation[]
+  products           Product[]
+  inventoryItems     InventoryItem[]
+  inventoryMovements InventoryMovement[]
+  maintenances       Maintenance[]
+  customers          Customer[]
+  rentals            Rental[]
+
+  @@map("tenants")
+}
+
+// ──────────────────────────────────────────────
+// 2. Users (RF-USR-01, RF-USR-02)
+// ──────────────────────────────────────────────
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String
+  password  String
+  createdAt DateTime @default(now())
+  roles     UserRole[]
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+// ──────────────────────────────────────────────
+// 3. Roles (RF-USR-01)
+// TENANT_ADMIN | SALES_AGENT | INVENTORY_MANAGER
+// ──────────────────────────────────────────────
+model Role {
+  id    String     @id @default(uuid()) @db.Uuid
+  name  String     @unique
+  users UserRole[]
+
+  @@map("roles")
+}
+
+// ──────────────────────────────────────────────
+// 4. UserRoles (N:M)
+// ──────────────────────────────────────────────
+model UserRole {
+  userId String @db.Uuid
+  roleId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ──────────────────────────────────────────────
+// 5. ProductCategories (RF-INV-02)
+// ──────────────────────────────────────────────
+model ProductCategory {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  name        String
+  description String?
+  slug        String
+  products    Product[]
+
+  @@unique([tenantId, slug])
+  @@map("product_categories")
+}
+
+// ──────────────────────────────────────────────
+// 6. StorageLocations (RF-INV-05)
+// ──────────────────────────────────────────────
+model StorageLocation {
+  id             String          @id @default(uuid()) @db.Uuid
+  tenantId       String          @db.Uuid
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  name           String
+  address        String?
+  inventoryItems InventoryItem[]
+
+  @@map("storage_locations")
+}
+
+// ──────────────────────────────────────────────
+// 7. Products – catálogo (RF-INV-01)
+// ──────────────────────────────────────────────
+model Product {
+  id           String           @id @default(uuid()) @db.Uuid
+  tenantId     String           @db.Uuid
+  tenant       Tenant           @relation(fields: [tenantId], references: [id])
+  name         String
+  description  String?
+  categoryId   String           @db.Uuid
+  category     ProductCategory  @relation(fields: [categoryId], references: [id])
+  priceInCents Int
+  trackingType ItemTrackingType @default(SERIALIZED)
+  createdAt    DateTime         @default(now())
+  items        InventoryItem[]
+
+  @@map("products")
+}
+
+// ──────────────────────────────────────────────
+// 8. InventoryItems (RF-INV-03, RF-INV-04)
+//    Serialized → serialNumber set, quantity = 1
+//    Bulk       → serialNumber null, quantity = N
+// ──────────────────────────────────────────────
+model InventoryItem {
+  id           String          @id @default(uuid()) @db.Uuid
+  tenantId     String          @db.Uuid
+  tenant       Tenant          @relation(fields: [tenantId], references: [id])
+  productId    String          @db.Uuid
+  product      Product         @relation(fields: [productId], references: [id])
+  locationId   String          @db.Uuid
+  location     StorageLocation @relation(fields: [locationId], references: [id])
+  serialNumber String?
+  status       ItemStatus      @default(AVAILABLE)
+  quantity     Int             @default(1)
+  createdAt    DateTime        @default(now())
+
+  movements    InventoryMovement[]
+  maintenances Maintenance[]
+  rentalItems  RentalItem[]
+
+  @@unique([tenantId, serialNumber])
+  @@map("inventory_items")
+}
+
+// ──────────────────────────────────────────────
+// 9. InventoryMovements – auditoría (RF-INV-07, RNF-07)
+// ──────────────────────────────────────────────
+model InventoryMovement {
+  id        String        @id @default(uuid()) @db.Uuid
+  tenantId  String        @db.Uuid
+  tenant    Tenant        @relation(fields: [tenantId], references: [id])
+  itemId    String        @db.Uuid
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  quantity  Int
+  type      MovementType
+  note      String?
+  createdAt DateTime      @default(now())
+
+  @@map("inventory_movements")
+}
+
+// ──────────────────────────────────────────────
+// 10. Maintenances (RF-INV-06)
+// ──────────────────────────────────────────────
+model Maintenance {
+  id            String            @id @default(uuid()) @db.Uuid
+  tenantId      String            @db.Uuid
+  tenant        Tenant            @relation(fields: [tenantId], references: [id])
+  itemId        String            @db.Uuid
+  item          InventoryItem     @relation(fields: [itemId], references: [id])
+  description   String
+  scheduledDate DateTime
+  completedDate DateTime?
+  status        MaintenanceStatus @default(SCHEDULED)
+  createdAt     DateTime          @default(now())
+
+  @@map("maintenances")
+}
+
+// ──────────────────────────────────────────────
+// 11. Customers (RF-CST-01, RF-CST-02)
+// ──────────────────────────────────────────────
+model Customer {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String
+  phone     String?
+  isBlocked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  rentals   Rental[]
+
+  @@unique([tenantId, email])
+  @@map("customers")
+}
+
+// ──────────────────────────────────────────────
+// 12. Rentals (RF-RNT-01, RF-RNT-04)
+// ──────────────────────────────────────────────
+model Rental {
+  id           String       @id @default(uuid()) @db.Uuid
+  tenantId     String       @db.Uuid
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  customerId   String       @db.Uuid
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  startDate    DateTime     @default(now())
+  endDate      DateTime
+  status       RentalStatus @default(ACTIVE)
+  totalInCents Int          @default(0)
+  createdAt    DateTime     @default(now())
+  items        RentalItem[]
+
+  @@map("rentals")
+}
+
+// ──────────────────────────────────────────────
+// 13. RentalItems (RF-RNT-02, RNF-06)
+// ──────────────────────────────────────────────
+model RentalItem {
+  id               String        @id @default(uuid()) @db.Uuid
+  rentalId         String        @db.Uuid
+  rental           Rental        @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  itemId           String        @db.Uuid
+  item             InventoryItem @relation(fields: [itemId], references: [id])
+  quantity         Int
+  priceInCents     Int
+  returnedQuantity Int           @default(0)
+  returnedAt       DateTime?
+
+  @@map("rental_items")
+}
