@@ -1,12 +1,18 @@
 import { Router } from 'express';
 import locationController from '../controllers/location.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { authorizeRoles } from '../middleware/role.middleware';
 
 const router = Router();
 
-router.get('/', locationController.getAll.bind(locationController));
-router.get('/:id', locationController.getById.bind(locationController));
-router.post('/', locationController.create.bind(locationController));
-router.put('/:id', locationController.update.bind(locationController));
-router.delete('/:id', locationController.delete.bind(locationController));
+router.use(authMiddleware);
+
+// TENANT_ADMIN: CRUD completo | INVENTORY_MANAGER: CRUD (gestión logística)
+// SALES_AGENT: sin acceso (no gestiona bodegas)
+router.get('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.getAll.bind(locationController));
+router.get('/:id', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.getById.bind(locationController));
+router.post('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.create.bind(locationController));
+router.put('/:id', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.update.bind(locationController));
+router.delete('/:id', authorizeRoles('TENANT_ADMIN'), locationController.delete.bind(locationController));
 
 export default router;

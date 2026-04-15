@@ -29,6 +29,19 @@ class ProductRepository {
       },
     });
   }
+
+  async update(tenantId: string, id: string, data: any): Promise<Product> {
+    return await prisma.product.update({
+      where: { id, tenantId },
+      data,
+    });
+  }
+
+  async delete(tenantId: string, id: string): Promise<Product | null> {
+    return await prisma.product.delete({
+      where: { id, tenantId },
+    });
+  }
 }
 
 export default new ProductRepository();
