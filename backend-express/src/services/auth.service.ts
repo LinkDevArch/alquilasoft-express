@@ -13,9 +13,9 @@ class AuthService {
         data: { name: data.tenantName },
       });
 
-      // 2. Buscar el rol ADMIN
+      // 2. Buscar el rol TENANT_ADMIN
       const adminRole = await tx.role.findUnique({
-        where: { name: 'ADMIN' },
+        where: { name: 'TENANT_ADMIN' },
       });
 
       if (!adminRole) {
@@ -66,7 +66,7 @@ class AuthService {
     const role = await userRepository.findRoleByName(roleName.toUpperCase());
 
     if (!role) {
-      throw new AppError(`Role ${roleName} not found. Available roles: ADMIN, SALES_AGENT, INVENTORY_MANAGER`, 404);
+      throw new AppError(`Role ${roleName} not found. Available roles: TENANT_ADMIN, SALES_AGENT, INVENTORY_MANAGER`, 404);
     }
 
     const user = await userRepository.create(tenantId, {
