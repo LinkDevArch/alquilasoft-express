@@ -2,9 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 import { AppError } from '../utils/AppError';
 
-/**
- * Middleware para validar el token JWT y extraer la información del usuario.
- */
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
@@ -15,7 +12,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
 
-    // Guardamos la info del usuario en res.locals para que esté disponible en controladores
     res.locals.user = decoded;
     res.locals.tenantId = decoded.tenantId;
 

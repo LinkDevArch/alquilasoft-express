@@ -8,7 +8,6 @@ const productController = new ProductController();
 
 router.use(authMiddleware);
 
-// TENANT_ADMIN: CRUD completo | SALES_AGENT e INVENTORY_MANAGER: solo lectura (consultar catálogo)
 router.get('/', authorizeRoles('TENANT_ADMIN', 'SALES_AGENT', 'INVENTORY_MANAGER'), productController.getAll);
 router.get('/:id', authorizeRoles('TENANT_ADMIN', 'SALES_AGENT', 'INVENTORY_MANAGER'), productController.getById);
 router.post('/', authorizeRoles('TENANT_ADMIN'), productController.create);

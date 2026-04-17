@@ -7,8 +7,6 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// TENANT_ADMIN: CRUD completo | INVENTORY_MANAGER: CRUD (gestión logística)
-// SALES_AGENT: sin acceso (no gestiona bodegas)
 router.get('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.getAll.bind(locationController));
 router.get('/:id', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.getById.bind(locationController));
 router.post('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), locationController.create.bind(locationController));

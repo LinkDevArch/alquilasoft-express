@@ -97,6 +97,7 @@ Inicia sesión con email y contraseña.
 | Método | Endpoint | Acceso Requerido |
 | :--- | :--- | :--- |
 | `GET / POST / PUT` | `/api/v1/locations` | `TENANT_ADMIN`, `INVENTORY_MANAGER` |
+| `DELETE` | `/api/v1/locations/:id` | Solo `TENANT_ADMIN` |
 
 ```json
 // POST /api/v1/locations — Body

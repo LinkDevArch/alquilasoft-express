@@ -1,9 +1,5 @@
 import { AppError } from './AppError';
 
-/**
- * Valida que los campos requeridos estén presentes en el body.
- * Lanza un AppError 400 si falta alguno.
- */
 export const validateRequiredFields = (body: Record<string, any>, fields: string[]): void => {
   const missing = fields.filter((field) => {
     const value = body[field];

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 
-export const validateRequest = (schema: ZodSchema) => 
+export const validateRequest = (schema: ZodSchema) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       await schema.parseAsync({
@@ -19,7 +19,7 @@ export const validateRequest = (schema: ZodSchema) =>
             message: e.message
           }))
         });
-        return; // Important: explicitly stop execution.
+        return;
       }
       next(error);
     }

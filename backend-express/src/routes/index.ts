@@ -11,7 +11,6 @@ import inventoryMovementRoutes from './inventory-movement.routes';
 
 const router = Router();
 
-// Todas estas rutas están protegidas internamente por su propio authMiddleware y roleMiddleware
 router.use('/categories', categoryRoutes);
 router.use('/locations', locationRoutes);
 router.use('/users', userRoutes);

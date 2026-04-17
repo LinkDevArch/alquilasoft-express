@@ -10,13 +10,10 @@ const controller = new RentalController();
 
 router.use(authMiddleware);
 
-// SALES_AGENT: CRUD completo (crear alquileres, registrar devoluciones)
-// TENANT_ADMIN: lectura y eliminación para supervisión
-// INVENTORY_MANAGER: sin acceso
 router.get('/', authorizeRoles('TENANT_ADMIN', 'SALES_AGENT'), controller.getAll);
 router.get('/:id', authorizeRoles('TENANT_ADMIN', 'SALES_AGENT'), controller.getById);
-router.post('/', authorizeRoles('SALES_AGENT'), validateRequest(createRentalSchema), controller.create);
-router.put('/:id', authorizeRoles('SALES_AGENT'), validateRequest(updateRentalSchema), controller.update);
+router.post('/', authorizeRoles('TENANT_ADMIN', 'SALES_AGENT'), validateRequest(createRentalSchema), controller.create);
+router.put('/:id', authorizeRoles('TENANT_ADMIN', 'SALES_AGENT'), validateRequest(updateRentalSchema), controller.update);
 router.delete('/:id', authorizeRoles('TENANT_ADMIN'), controller.delete);
 
 export default router;

@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/AppError';
 
-/**
- * Middleware para validar el rol del usuario (RBAC).
- */
 export const authorizeRoles = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const userRole = res.locals.user?.role;

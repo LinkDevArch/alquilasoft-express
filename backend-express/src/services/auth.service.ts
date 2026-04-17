@@ -8,12 +8,9 @@ import { AppError } from '../utils/AppError';
 class AuthService {
   async onboarding(data: { tenantName: string; name: string; email: string; password: string }) {
     return await prisma.$transaction(async (tx) => {
-      // 1. Crear el Tenant
       const tenant = await tx.tenant.create({
         data: { name: data.tenantName },
       });
-
-      // 2. Buscar el rol TENANT_ADMIN
       const adminRole = await tx.role.findUnique({
         where: { name: 'TENANT_ADMIN' },
       });
@@ -22,7 +19,6 @@ class AuthService {
         throw new AppError('Admin role not found in system. Please seed roles first.', 500);
       }
 
-      // 3. Crear el Usuario Administrador
       const hashedPassword = await hashPassword(data.password);
       const user = await tx.user.create({
         data: {
@@ -62,7 +58,7 @@ class AuthService {
     }
 
     const hashedPassword = await hashPassword(data.password);
-    const roleName = data.roleName || 'SALES_AGENT'; // Rol por defecto
+    const roleName = data.roleName || 'SALES_AGENT';
     const role = await userRepository.findRoleByName(roleName.toUpperCase());
 
     if (!role) {
@@ -86,7 +82,6 @@ class AuthService {
   }
 
   async login(data: { email: string; password: string }) {
-    // Busca el usuario por email en toda la base de datos (email debe ser globalmente único)
     const user = await userRepository.findByEmailGlobal(data.email);
     if (!user) {
       throw new AppError('Invalid email or password', 401);
@@ -102,7 +97,7 @@ class AuthService {
     const token = signToken({
       userId: user.id,
       role: primaryRole,
-      tenantId: user.tenantId, 
+      tenantId: user.tenantId,
     });
 
     return { user, token };

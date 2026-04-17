@@ -10,9 +10,6 @@ const controller = new MaintenanceController();
 
 router.use(authMiddleware);
 
-// INVENTORY_MANAGER: CRUD completo (gestión del mantenimiento de equipos)
-// TENANT_ADMIN: CRUD para supervisión total
-// SALES_AGENT: sin acceso
 router.get('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), controller.getAll);
 router.get('/:id', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), controller.getById);
 router.post('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), validateRequest(createMaintenanceSchema), controller.create);

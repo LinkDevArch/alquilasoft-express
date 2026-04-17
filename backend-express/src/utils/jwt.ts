@@ -9,18 +9,12 @@ export interface TokenPayload {
   tenantId: string;
 }
 
-/**
- * Genera un JWT válido con el payload requerido.
- */
 export const signToken = (payload: TokenPayload): string => {
   return jwt.sign({ ...payload }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
   });
 };
 
-/**
- * Verifica la validez de un JWT.
- */
 export const verifyToken = (token: string): TokenPayload => {
   return jwt.verify(token, JWT_SECRET) as TokenPayload;
 };

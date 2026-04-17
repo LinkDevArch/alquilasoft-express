@@ -13,7 +13,6 @@ export class AuthController {
   }
 
   async login(req: Request, res: Response) {
-    // Only pass req.body since it doesn't need tenant context
     const { user, token } = await authService.login(req.body);
     res.status(200).json({
       message: 'Login successful',

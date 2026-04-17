@@ -3,11 +3,6 @@ import { AppError } from '../utils/AppError';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Extrae tenant_id del header x-tenant-id y lo deja en res.locals.tenantId.
- * Será reemplazado por JWT cuando se implemente autenticación.
- * Nota de Johan
- */
 export const tenantMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const tenantId = req.headers['x-tenant-id'] as string | undefined;
   if (!tenantId) {

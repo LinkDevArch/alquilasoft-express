@@ -8,7 +8,6 @@ const userController = new UserController();
 
 router.use(authMiddleware);
 
-// Solo el TENANT_ADMIN puede gestionar usuarios
 router.get('/', authorizeRoles('TENANT_ADMIN'), userController.getAll);
 router.post('/', authorizeRoles('TENANT_ADMIN'), userController.create);
 router.get('/:id', authorizeRoles('TENANT_ADMIN'), userController.getById);

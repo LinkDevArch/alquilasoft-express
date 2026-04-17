@@ -30,6 +30,5 @@ export type {
   RentalItem,
 };
 
-// Alias de conveniencia
 export type Category = ProductCategory;
 export type LocationInfo = StorageLocation;

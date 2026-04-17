@@ -41,7 +41,6 @@ class RentalService {
           priceInCents
         });
 
-        // Update item status to RENTED
         await tx.inventoryItem.update({
           where: { id: reqItem.itemId },
           data: { status: ItemStatus.RENTED }
@@ -66,8 +65,6 @@ class RentalService {
   }
 
   async updateRental(tenantId: string, id: string, data: any): Promise<Rental> {
-    // If status changes to RETURNED, we should ideally mark items as AVAILABLE
-    // For now we just allow standard update
     return await rentalRepository.update(tenantId, id, data);
   }
 

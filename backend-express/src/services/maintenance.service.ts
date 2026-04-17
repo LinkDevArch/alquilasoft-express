@@ -27,7 +27,6 @@ class MaintenanceService {
         throw new AppError(`Item ${inventoryItem.serialNumber || inventoryItem.id} cannot be placed in maintenance. Current status is ${inventoryItem.status}.`, 400);
       }
 
-      // Mark item as MAINTENANCE
       await tx.inventoryItem.update({
         where: { id: itemId },
         data: { status: ItemStatus.MAINTENANCE }
@@ -56,7 +55,6 @@ class MaintenanceService {
       if (!maintenance) throw new AppError('Maintenance record not found', 404);
 
       if (data.status === MaintenanceStatus.COMPLETED && maintenance.status !== MaintenanceStatus.COMPLETED) {
-        // Mark item as AVAILABLE again
         await tx.inventoryItem.update({
           where: { id: maintenance.itemId },
           data: { status: ItemStatus.AVAILABLE }

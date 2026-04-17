@@ -8,11 +8,8 @@ const controller = new InventoryMovementController();
 
 router.use(authMiddleware);
 
-// INVENTORY_MANAGER: CRUD (registrar movimientos de ingreso/salida)
-// TENANT_ADMIN: lectura para auditoría
-// SALES_AGENT: sin acceso
 router.get('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), controller.getAll);
 router.get('/:id', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), controller.getById);
-router.post('/', authorizeRoles('INVENTORY_MANAGER'), controller.create);
+router.post('/', authorizeRoles('TENANT_ADMIN', 'INVENTORY_MANAGER'), controller.create);
 
 export default router;
